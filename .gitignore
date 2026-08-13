@@ -1,0 +1,14 @@
+# Visual Studio / .NET Build Artifacts
+**/bin/
+**/obj/
+**/.vs/
+*.user
+*.suo
+*.userosv
+*.userprefs
+*.tmp
+*.log
+
+# Git ignore setup
+.idea/
+*.rsuser

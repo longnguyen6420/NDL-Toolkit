@@ -1,0 +1,54 @@
+<Window x:Class="PlaceFamilyByLayerTool.UI.PlaceFamilyByLayerWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="PipePlaceholderForm" Height="290" Width="410"
+        WindowStartupLocation="CenterScreen" ResizeMode="NoResize"
+        Background="#F4F4F5" Foreground="#18181B" Topmost="True"
+        FontFamily="Segoe UI" FontSize="13">
+
+    <Grid Margin="18">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="110"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+
+        <!-- Family Type -->
+        <TextBlock Grid.Row="0" Grid.Column="0" Text="Family Type" VerticalAlignment="Center" Margin="0,5"/>
+        <ComboBox Grid.Row="0" Grid.Column="1" x:Name="cboFamilyType" Margin="0,3" Padding="6,4"/>
+
+        <!-- Level -->
+        <TextBlock Grid.Row="1" Grid.Column="0" Text="Level" VerticalAlignment="Center" Margin="0,5"/>
+        <ComboBox Grid.Row="1" Grid.Column="1" x:Name="cboLevel" Margin="0,3" Padding="6,4"/>
+
+        <!-- Layer Name -->
+        <TextBlock Grid.Row="2" Grid.Column="0" Text="Layer Name" VerticalAlignment="Center" Margin="0,5"/>
+        <ComboBox Grid.Row="2" Grid.Column="1" x:Name="cboLayerName" IsEditable="True" Text="A-ANNO-NOTE" Margin="0,3" Padding="6,4"/>
+
+        <!-- Elevation -->
+        <TextBlock Grid.Row="3" Grid.Column="0" Text="Elevation" VerticalAlignment="Center" Margin="0,5"/>
+        <TextBox Grid.Row="3" Grid.Column="1" x:Name="txtElevation" Text="9 6" Margin="0,3" Padding="6,4" Width="140" HorizontalAlignment="Left"/>
+
+        <!-- Min Distance / Cluster Tolerance -->
+        <TextBlock Grid.Row="4" Grid.Column="0" Text="Tolerance (mm)" VerticalAlignment="Center" Margin="0,5" ToolTip="Dung sai gộp điểm trùng thuộc cùng 1 Block (Mặc định 300mm)"/>
+        <Grid Grid.Row="4" Grid.Column="1" Margin="0,3">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="140"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="90"/>
+            </Grid.ColumnDefinitions>
+            <TextBox Grid.Column="0" x:Name="txtTolerance" Text="300" Padding="6,4" ToolTip="Khoảng cách tối thiểu giữa 2 điểm đặt Family (mm)"/>
+            <Button Grid.Column="2" Content="OK" Click="BtnOK_Click" Height="30" Width="80" 
+                    HorizontalAlignment="Right" Background="#2563EB" Foreground="#FFFFFF" 
+                    FontWeight="Bold" BorderThickness="0" Cursor="Hand"/>
+        </Grid>
+    </Grid>
+</Window>

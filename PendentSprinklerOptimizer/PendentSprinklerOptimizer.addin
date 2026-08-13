@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RevitAddIns>
+  <AddIn Type="Command">
+    <Name>Pendent Sprinkler Optimizer</Name>
+    <Assembly>PendentSprinklerOptimizer\PendentSprinklerOptimizer.dll</Assembly>
+    <FullClassName>PendentSprinklerOptimizer.OptimizeSprinklersCommand</FullClassName>
+    <ClientId>f8d9e0f1-b2c3-d4e5-f6a7-999999999999</ClientId>
+    <VendorId>PendentSprinklerOptimizer</VendorId>
+    <VendorDescription>Pendent Sprinkler Optimizer Add-in</VendorDescription>
+  </AddIn>
+</RevitAddIns>

@@ -1,0 +1,54 @@
+<Window x:Class="RotateVerticalTool.UI.RotateVerticalWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Rotate Vertical Group" Height="270" Width="380"
+        WindowStartupLocation="CenterScreen" ResizeMode="NoResize"
+        Background="#F4F4F5" Foreground="#18181B" Topmost="True"
+        FontFamily="Segoe UI" FontSize="13">
+
+    <Grid Margin="18">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- Title Header Badge -->
+        <Border Grid.Row="0" Background="#F0FDF4" BorderBrush="#BBF7D0" BorderThickness="1" CornerRadius="6" Padding="10,8" Margin="0,0,0,10">
+            <StackPanel>
+                <TextBlock Text="🔄 ROTATE VERTICAL AROUND PIPE AXIS" FontWeight="Bold" Foreground="#15803D" FontSize="12"/>
+                <TextBlock Text="Mỗi lần ấn nút Xoay, cụm đối tượng sẽ xoay tiếp 1 góc nhập" Foreground="#16A34A" FontSize="11" Margin="0,2,0,0"/>
+            </StackPanel>
+        </Border>
+
+        <!-- Element Info -->
+        <TextBlock Grid.Row="1" x:Name="lblElementCount" Text="Số lượng đối tượng xoay: 0" FontWeight="SemiBold" Foreground="#18181B" Margin="0,2"/>
+        <TextBlock Grid.Row="2" x:Name="lblAxisPipeInfo" Text="Ống tim xoay: Chưa chọn" Foreground="#52525B" FontSize="12" Margin="0,2,0,8"/>
+
+        <!-- Angle Input Field -->
+        <Grid Grid.Row="3" Margin="0,4">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="130"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <TextBlock Grid.Column="0" Text="Góc xoay (Độ °)" VerticalAlignment="Center" FontWeight="Bold"/>
+            <TextBox Grid.Column="1" x:Name="txtAngle" Text="45" Padding="6,4" 
+                     ToolTip="Nhập số dương để xoay thuận chiều kim đồng hồ, số âm để xoay ngược chiều"/>
+        </Grid>
+
+        <!-- Action Buttons -->
+        <Grid Grid.Row="4" VerticalAlignment="Bottom" Margin="0,14,0,0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="10"/>
+                <ColumnDefinition Width="1.5*"/>
+            </Grid.ColumnDefinitions>
+            <Button Grid.Column="0" Content="Đóng" Click="BtnClose_Click" Height="34" 
+                    Background="#E4E4E7" Foreground="#18181B" BorderThickness="1" BorderBrush="#D4D4D8" Cursor="Hand"/>
+            <Button Grid.Column="2" Content="🔄 XOAY LẦN NÀY" Click="BtnRotate_Click" Height="34" 
+                    Background="#16A34A" Foreground="#FFFFFF" FontWeight="Bold" BorderThickness="0" Cursor="Hand"/>
+        </Grid>
+    </Grid>
+</Window>

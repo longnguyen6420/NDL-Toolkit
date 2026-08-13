@@ -1,0 +1,137 @@
+<Window x:Class="AlignTagTool.UI.AlignTagWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="NDL Tag Align &amp; Distribute Tool" Height="420" Width="360"
+        WindowStartupLocation="CenterScreen" ResizeMode="NoResize"
+        Background="#1E1E2E" Foreground="#CDD6F4" Topmost="True">
+
+    <Window.Resources>
+        <Style TargetType="Button">
+            <Setter Property="Background" Value="#313244"/>
+            <Setter Property="Foreground" Value="#F5E0DC"/>
+            <Setter Property="BorderBrush" Value="#45475A"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="8,6"/>
+            <Setter Property="Margin" Value="4"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="border" Background="{TemplateBinding Background}" 
+                                BorderBrush="{TemplateBinding BorderBrush}" 
+                                BorderThickness="{TemplateBinding BorderThickness}" 
+                                CornerRadius="5">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="#45475A"/>
+                                <Setter TargetName="border" Property="BorderBrush" Value="#89B4FA"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="#585B70"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style TargetType="TextBox">
+            <Setter Property="Background" Value="#11111B"/>
+            <Setter Property="Foreground" Value="#A6E3A1"/>
+            <Setter Property="BorderBrush" Value="#45475A"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="6,4"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+        </Style>
+    </Window.Resources>
+
+    <Grid Margin="16">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- Header -->
+        <StackPanel Grid.Row="0" Margin="0,0,0,12">
+            <TextBlock Text="🏷️ CĂN LỀ &amp; SẮP XẾP TAG" FontSize="16" FontWeight="Bold" Foreground="#89B4FA" HorizontalAlignment="Center"/>
+            <TextBlock x:Name="txtStatus" Text="Đã chọn: 0 Tags" FontSize="12" Foreground="#A6ADC8" HorizontalAlignment="Center" Margin="0,4,0,0"/>
+        </StackPanel>
+
+        <!-- Section 1: Alignment -->
+        <GroupBox Grid.Row="1" Header="1. Căn lề các Tag (Alignment)" Foreground="#F9E2AF" Margin="0,0,0,10" Padding="8">
+            <StackPanel>
+                <!-- Horizontal Align Row -->
+                <Grid Margin="0,2">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <Button Grid.Column="0" Content="⬅️ Trái (Left)" Click="BtnAlignLeft_Click"/>
+                    <Button Grid.Column="1" Content="↔️ Giữa (X)" Click="BtnAlignCenterX_Click"/>
+                    <Button Grid.Column="2" Content="➡️ Phải (Right)" Click="BtnAlignRight_Click"/>
+                </Grid>
+
+                <!-- Vertical Align Row -->
+                <Grid Margin="0,2">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <Button Grid.Column="0" Content="⬆️ Trên (Top)" Click="BtnAlignTop_Click"/>
+                    <Button Grid.Column="1" Content="↕️ Giữa (Y)" Click="BtnAlignCenterY_Click"/>
+                    <Button Grid.Column="2" Content="⬇️ Dưới (Bottom)" Click="BtnAlignBottom_Click"/>
+                </Grid>
+            </StackPanel>
+        </GroupBox>
+
+        <!-- Section 2: Equal Distribution -->
+        <GroupBox Grid.Row="2" Header="2. Phân bổ khoảng cách đều (Distribute)" Foreground="#F9E2AF" Margin="0,0,0,10" Padding="8">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <Button Grid.Column="0" Content="↕️ Phân bổ Dọc đều" Click="BtnDistributeV_Click"/>
+                <Button Grid.Column="1" Content="↔️ Phân bổ Ngang đều" Click="BtnDistributeH_Click"/>
+            </Grid>
+        </GroupBox>
+
+        <!-- Section 3: Fixed Spacing -->
+        <GroupBox Grid.Row="3" Header="3. Khoảng cách cố định (Fixed Spacing)" Foreground="#F9E2AF" Margin="0,0,0,10" Padding="8">
+            <StackPanel>
+                <Grid Margin="0,2">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Grid.Column="0" Text="Khoảng cách (Gap): " VerticalAlignment="Center" Foreground="#CDD6F4"/>
+                    <TextBox Grid.Column="1" x:Name="txtSpacing" Text="300" Margin="4,0"/>
+                    <TextBlock Grid.Column="2" Text="mm" VerticalAlignment="Center" Foreground="#A6ADC8"/>
+                </Grid>
+                <Grid Margin="0,4">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <Button Grid.Column="0" Content="↕️ Xếp dọc (Gap)" Click="BtnFixedSpacingV_Click"/>
+                    <Button Grid.Column="1" Content="↔️ Xếp ngang (Gap)" Click="BtnFixedSpacingH_Click"/>
+                </Grid>
+            </StackPanel>
+        </GroupBox>
+
+        <!-- Close Button -->
+        <Button Grid.Row="4" Content="Đóng cửa sổ" Click="BtnClose_Click" Background="#45475A" Foreground="#F5E0DC" Height="32" VerticalAlignment="Bottom"/>
+    </Grid>
+</Window>

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RevitAddIns>
+  <AddIn Type="Application">
+    <Name>Auto Sleeve Placement Tool</Name>
+    <Assembly>AutoSleeveTool.dll</Assembly>
+    <FullClassName>AutoSleeveTool.AutoSleeveApp</FullClassName>
+    <ClientId>A5B8C1D2-E3F4-4982-A000-887766554433</ClientId>
+    <VendorId>AUTOSLEEVE</VendorId>
+    <VendorDescription>Auto Sleeve Placement Tool for Revit Link Penetrations</VendorDescription>
+  </AddIn>
+</RevitAddIns>
