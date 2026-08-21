@@ -192,19 +192,10 @@ namespace NDL_Installer
                 }
             }
 
-            // Check Program Files for installed versions
+            // Ensure all common Revit versions (2020 - 2026) are covered
             for (int y = 2020; y <= 2026; y++)
             {
-                if (Directory.Exists($@"C:\Program Files\Autodesk\Revit {y}"))
-                {
-                    detectedYears.Add(y.ToString());
-                }
-            }
-
-            if (detectedYears.Count == 0)
-            {
-                detectedYears.Add("2024");
-                detectedYears.Add("2025");
+                detectedYears.Add(y.ToString());
             }
 
             // Always write to user APPDATA (never throws Access Denied)
@@ -231,7 +222,7 @@ namespace NDL_Installer
 
             if (versions.Count > 0)
             {
-                txtRevitVersions.Text = "Phát hiện " + versions.Count + " phiên bản Revit: " + string.Join(", ", versions);
+                txtRevitVersions.Text = "Hỗ trợ các phiên bản Revit: " + string.Join(", ", versions);
             }
             else
             {
@@ -293,7 +284,7 @@ namespace NDL_Installer
                     Log($"⚠️ Cảnh báo: Chưa tìm thấy file NDLCore.dll tại '{targetDll}'");
                 }
 
-                string manifest = $@"<?xml=""1.0"" encoding=""utf-8""?>
+                string manifest = $@"<?xml version=""1.0"" encoding=""utf-8""?>
 <RevitAddIns>
   <AddIn Type=""Application"">
     <Name>NDL Tools Loader</Name>
