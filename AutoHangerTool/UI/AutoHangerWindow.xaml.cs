@@ -28,6 +28,20 @@ namespace NDL.AutoHangerTool.UI
             Close();
         }
 
+        private void BtnCreateFamily_Click(object sender, RoutedEventArgs e)
+        {
+            bool success = HangerFamilyService.CreateStandardHangerFamily(_doc.Application);
+            if (success)
+            {
+                FamilySymbol symbol = HangerFamilyService.GetOrLoadHangerFamilySymbol(_doc);
+                TaskDialog.Show("NDL Hanger", "✅ Đã tự động tạo Family chuẩn 'NDL_Hanger_Insert.rfa' và nạp trực tiếp vào dự án thành công!");
+            }
+            else
+            {
+                TaskDialog.Show("NDL Hanger", "⚠️ Không tìm thấy template mặc định để tạo Family. Bạn có thể load Family có sẵn trong dự án.");
+            }
+        }
+
         private void BtnPlace_Click(object sender, RoutedEventArgs e)
         {
             double spacing = 2000;
@@ -53,7 +67,7 @@ namespace NDL.AutoHangerTool.UI
             FamilySymbol symbol = HangerFamilyService.GetOrLoadHangerFamilySymbol(_doc);
             if (symbol == null)
             {
-                TaskDialog.Show("NDL Hanger", "Không tìm thấy Family Hanger/Insert hợp lệ trong dự án.");
+                TaskDialog.Show("NDL Hanger", "Không tìm thấy Family Hanger/Insert hợp lệ. Vui lòng bấm nút 'Tự Động Tạo / Nạp Lại Family Mẫu' trước.");
                 return;
             }
 
