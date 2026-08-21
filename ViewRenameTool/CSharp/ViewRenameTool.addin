@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RevitAddIns>
+  <AddIn Type="Command">
+    <Name>ViewRenameTool</Name>
+    <Assembly>ViewRenameTool.dll</Assembly>
+    <FullClassName>ViewRenameTool.ViewRenameCommand</FullClassName>
+    <ClientId>B284A540-02C6-4C1F-95C4-7A9B93F3841B</ClientId>
+    <VendorId>ANTIGRAVITY</VendorId>
+    <VendorDescription>Antigravity AI Revit Tools</VendorDescription>
+  </AddIn>
+</RevitAddIns>

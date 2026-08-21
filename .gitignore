@@ -8,6 +8,7 @@
 *.userprefs
 *.tmp
 *.log
+*.dll
 
 # Git ignore setup
 .idea/

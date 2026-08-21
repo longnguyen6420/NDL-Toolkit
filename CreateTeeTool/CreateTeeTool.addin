@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RevitAddIns>
+  <AddIn Type="Command">
+    <Name>Create Revit Pipe Tee Tool</Name>
+    <Assembly>CreateTeeTool.dll</Assembly>
+    <FullClassName>CreateRevitTeeTool.Commands.CreateTeeCommand</FullClassName>
+    <ClientId>c9a184e2-763d-498b-9d41-945781a98099</ClientId>
+    <VendorId>ANTIGRAVITY</VendorId>
+    <VendorDescription>Antigravity AI MEP Solutions</VendorDescription>
+  </AddIn>
+</RevitAddIns>

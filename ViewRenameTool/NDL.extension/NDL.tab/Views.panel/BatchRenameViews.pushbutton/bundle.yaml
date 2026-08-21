@@ -1,0 +1,9 @@
+title:
+  en_us: View Rename
+  vi_vn: View Rename
+
+tooltip:
+  en_us: Batch rename selected views to UPPERCASE with Level prefix (e.g., 1ST VERTICAL PENETRATION SLEEVE) - NDL Tools.
+  vi_vn: Đổi tên hàng loạt các View được chọn thành CHỮ IN HOA kèm tiền tố Level (ví dụ: 1ST VERTICAL PENETRATION SLEEVE) - Bộ công cụ NDL.
+
+author: NDL Tools

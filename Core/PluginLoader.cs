@@ -16,6 +16,25 @@ namespace NDL
             string baseDir = NDLApp.BaseDir;
             if (!Directory.Exists(baseDir)) return;
 
+            bool isNet8OrHigher = false;
+            try
+            {
+                if (int.TryParse(app.ControlledApplication.VersionNumber, out int versionYear))
+                {
+                    isNet8OrHigher = versionYear >= 2025;
+                }
+                else
+                {
+                    isNet8OrHigher = System.Environment.Version.Major >= 8;
+                }
+            }
+            catch
+            {
+                isNet8OrHigher = System.Environment.Version.Major >= 8;
+            }
+
+            string targetFrameworkFilter = isNet8OrHigher ? "\\net8" : "\\net48";
+
             // AssemblyResolve to resolve plugin dependencies
             AppDomain.CurrentDomain.AssemblyResolve += (sender, args) =>
             {
@@ -23,9 +42,14 @@ namespace NDL
                 {
                     string assemblyName = new AssemblyName(args.Name).Name + ".dll";
 
-                    string pluginMatch = Directory.GetFiles(baseDir, assemblyName, SearchOption.AllDirectories)
-                        .FirstOrDefault(f => f.IndexOf("\\obj\\", StringComparison.OrdinalIgnoreCase) < 0 &&
-                                             f.IndexOf("\\.vs\\", StringComparison.OrdinalIgnoreCase) < 0);
+                    var matches = Directory.GetFiles(baseDir, assemblyName, SearchOption.AllDirectories)
+                        .Where(f => f.IndexOf("\\obj\\", StringComparison.OrdinalIgnoreCase) < 0 &&
+                                    f.IndexOf("\\.vs\\", StringComparison.OrdinalIgnoreCase) < 0 &&
+                                    f.IndexOf("\\ref\\", StringComparison.OrdinalIgnoreCase) < 0 &&
+                                    f.IndexOf("\\refint\\", StringComparison.OrdinalIgnoreCase) < 0);
+
+                    string pluginMatch = matches.FirstOrDefault(f => f.IndexOf(targetFrameworkFilter, StringComparison.OrdinalIgnoreCase) >= 0)
+                        ?? matches.FirstOrDefault();
 
                     if (!string.IsNullOrEmpty(pluginMatch) && File.Exists(pluginMatch))
                     {
@@ -56,15 +80,28 @@ namespace NDL
                     continue;
                 }
 
-                // Search for valid DLL inside plugin bin/Release or bin/Debug, ordered by newest modification time
-                string targetDll = Directory.GetFiles(folderPath, "*.dll", SearchOption.AllDirectories)
+                var candidateDlls = Directory.GetFiles(folderPath, "*.dll", SearchOption.AllDirectories)
                     .Where(f => (f.IndexOf("\\bin\\Release\\", StringComparison.OrdinalIgnoreCase) >= 0 ||
                                  f.IndexOf("\\bin\\Debug\\", StringComparison.OrdinalIgnoreCase) >= 0) &&
                                 f.IndexOf("\\obj\\", StringComparison.OrdinalIgnoreCase) < 0 &&
                                 f.IndexOf("\\ref\\", StringComparison.OrdinalIgnoreCase) < 0 &&
                                 f.IndexOf("\\refint\\", StringComparison.OrdinalIgnoreCase) < 0)
+                    .ToList();
+
+                // Select target DLL matching current Revit CLR framework
+                string targetDll = candidateDlls
+                    .Where(f => f.IndexOf(targetFrameworkFilter, StringComparison.OrdinalIgnoreCase) >= 0)
+                    .Where(f => !f.EndsWith("BatchRenameViewsTool.dll", StringComparison.OrdinalIgnoreCase))
                     .OrderByDescending(f => File.GetLastWriteTime(f))
                     .FirstOrDefault();
+
+                if (string.IsNullOrEmpty(targetDll))
+                {
+                    targetDll = candidateDlls
+                        .Where(f => !f.EndsWith("BatchRenameViewsTool.dll", StringComparison.OrdinalIgnoreCase))
+                        .OrderByDescending(f => File.GetLastWriteTime(f))
+                        .FirstOrDefault();
+                }
 
                 if (string.IsNullOrEmpty(targetDll) || !File.Exists(targetDll))
                 {
@@ -149,7 +186,6 @@ namespace NDL
                     r.EndsWith("icon32.png", StringComparison.OrdinalIgnoreCase) ||
                     r.EndsWith("icon.png", StringComparison.OrdinalIgnoreCase) ||
                     r.EndsWith("rotatevertical.png", StringComparison.OrdinalIgnoreCase) ||
-                    r.EndsWith("autoconnectnearest.png", StringComparison.OrdinalIgnoreCase) ||
                     r.EndsWith("offsetpipe.png", StringComparison.OrdinalIgnoreCase) ||
                     r.EndsWith("pipeplaceholder.png", StringComparison.OrdinalIgnoreCase) ||
                     r.EndsWith("placefamilybylayer.png", StringComparison.OrdinalIgnoreCase) ||
@@ -159,6 +195,8 @@ namespace NDL
                     r.EndsWith("autosleeve.png", StringComparison.OrdinalIgnoreCase) ||
                     r.EndsWith("alignbranch.png", StringComparison.OrdinalIgnoreCase) ||
                     r.EndsWith("autoconnect.png", StringComparison.OrdinalIgnoreCase) ||
+                    r.EndsWith("viewrename.png", StringComparison.OrdinalIgnoreCase) ||
+                    r.EndsWith("makearm.png", StringComparison.OrdinalIgnoreCase) ||
                     r.EndsWith("sprinkler.png", StringComparison.OrdinalIgnoreCase));
 
                 if (!string.IsNullOrEmpty(resName))
@@ -186,7 +224,6 @@ namespace NDL
                     Path.Combine(topPluginDir, "icon32.png"),
                     Path.Combine(topPluginDir, "icon.png"),
                     Path.Combine(topPluginDir, "rotatevertical.png"),
-                    Path.Combine(topPluginDir, "autoconnectnearest.png"),
                     Path.Combine(topPluginDir, "offsetpipe.png"),
                     Path.Combine(topPluginDir, "pipeplaceholder.png"),
                     Path.Combine(topPluginDir, "placefamilybylayer.png"),
@@ -196,11 +233,11 @@ namespace NDL
                     Path.Combine(topPluginDir, "autosleeve.png"),
                     Path.Combine(topPluginDir, "alignbranch.png"),
                     Path.Combine(topPluginDir, "autoconnect.png"),
+                    Path.Combine(topPluginDir, "viewrename.png"),
                     Path.Combine(topPluginDir, "sprinkler.png"),
                     Path.Combine(pluginDir, "icon32.png"),
                     Path.Combine(pluginDir, "icon.png"),
                     Path.Combine(pluginDir, "rotatevertical.png"),
-                    Path.Combine(pluginDir, "autoconnectnearest.png"),
                     Path.Combine(pluginDir, "offsetpipe.png"),
                     Path.Combine(pluginDir, "pipeplaceholder.png"),
                     Path.Combine(pluginDir, "placefamilybylayer.png"),
@@ -210,6 +247,7 @@ namespace NDL
                     Path.Combine(pluginDir, "autosleeve.png"),
                     Path.Combine(pluginDir, "alignbranch.png"),
                     Path.Combine(pluginDir, "autoconnect.png"),
+                    Path.Combine(pluginDir, "viewrename.png"),
                     Path.Combine(pluginDir, "sprinkler.png")
                 };
 
@@ -280,7 +318,6 @@ namespace NDL
         private static string FormatPanelName(string folderName)
         {
             if (folderName.Equals("RotateVerticalTool", StringComparison.OrdinalIgnoreCase)) return "AUTO TOOL";
-            if (folderName.Equals("AutoConnectNearestPipeTool", StringComparison.OrdinalIgnoreCase)) return "MEP / PIPE";
             if (folderName.Equals("OffsetPipeTool", StringComparison.OrdinalIgnoreCase)) return "MEP / PIPE";
             if (folderName.Equals("PipePlaceholderTool", StringComparison.OrdinalIgnoreCase)) return "MEP / PIPE";
             if (folderName.Equals("PlaceFamilyByLayerTool", StringComparison.OrdinalIgnoreCase)) return "CAD / LINK";
@@ -291,6 +328,9 @@ namespace NDL
             if (folderName.Equals("AutoSleeveTool", StringComparison.OrdinalIgnoreCase)) return "SLEEVE";
             if (folderName.Equals("AutoDimDuctTool", StringComparison.OrdinalIgnoreCase)) return "SLEEVE";
             if (folderName.Equals("AlignMepToCeiling", StringComparison.OrdinalIgnoreCase)) return "AUTO TOOL";
+            if (folderName.Equals("CreateTeeTool", StringComparison.OrdinalIgnoreCase)) return "MEP / PIPE";
+            if (folderName.Equals("MakeArmTool", StringComparison.OrdinalIgnoreCase)) return "FIRE";
+            if (folderName.Equals("ViewRenameTool", StringComparison.OrdinalIgnoreCase) || folderName.Equals("BatchRenameViewsTool", StringComparison.OrdinalIgnoreCase)) return "VIEWS";
 
             return FormatName(folderName.Replace("Tool", "").Replace("Plugin", ""));
         }
@@ -298,10 +338,12 @@ namespace NDL
         private static string FormatButtonTitle(string className)
         {
             string clean = className.Replace("Command", "").Replace("Cmd", "");
+            if (clean.Equals("MakeArm", StringComparison.OrdinalIgnoreCase))
+                return "Make\nArm";
+            if (clean.Equals("ViewRename", StringComparison.OrdinalIgnoreCase) || clean.Equals("BatchRenameViews", StringComparison.OrdinalIgnoreCase))
+                return "View\nRename";
             if (clean.Equals("RotateVertical", StringComparison.OrdinalIgnoreCase))
                 return "Rotate\nVertical";
-            if (clean.Equals("AutoConnectNearest", StringComparison.OrdinalIgnoreCase))
-                return "AI Connect\nNearest";
             if (clean.Equals("OffsetPipe", StringComparison.OrdinalIgnoreCase))
                 return "Offset\nPipes";
             if (clean.Equals("PipePlaceholder", StringComparison.OrdinalIgnoreCase))
@@ -322,6 +364,8 @@ namespace NDL
                 return "AutoDim\nDucts";
             if (clean.Equals("AlignMEPToCeiling", StringComparison.OrdinalIgnoreCase))
                 return "Align MEP\nto Ceiling";
+            if (clean.Equals("CreateTee", StringComparison.OrdinalIgnoreCase))
+                return "Create\nPipe Tee";
 
             return FormatName(clean);
         }

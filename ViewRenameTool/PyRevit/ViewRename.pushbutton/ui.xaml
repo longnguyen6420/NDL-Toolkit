@@ -1,0 +1,128 @@
+<Window xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Tool Đổi Tên View Hàng Loạt - Antigravity AI" 
+        Height="550" Width="750" 
+        WindowStartupLocation="CenterScreen"
+        Background="#F5F6F8"
+        FontFamily="Segoe UI">
+    
+    <Window.Resources>
+        <Style TargetType="TextBlock">
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="Foreground" Value="#2C3E50"/>
+        </Style>
+        <Style TargetType="TextBox">
+            <Setter Property="Height" Value="28"/>
+            <Setter Property="Padding" Value="5,3,5,3"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="BorderBrush" Value="#CBD5E1"/>
+            <Setter Property="BorderThickness" Value="1"/>
+        </Style>
+        <Style TargetType="CheckBox">
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="Foreground" Value="#2C3E50"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+        </Style>
+        <Style TargetType="Button">
+            <Setter Property="Height" Value="32"/>
+            <Setter Property="MinWidth" Value="100"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Margin" Value="5,0,0,0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+        </Style>
+    </Window.Resources>
+
+    <Grid Margin="15">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Header -->
+        <Border Grid.Row="0" Background="#1E293B" CornerRadius="6" Padding="15,12" Margin="0,0,0,15">
+            <StackPanel>
+                <TextBlock Text="ĐỔI TÊN HÀNG LOẠT CÁC VIEW DỰ ÁN" Foreground="#F8FAFC" FontSize="16" FontWeight="Bold"/>
+                <TextBlock Text="Định dạng tên gốc đồng nhất + Tùy chọn Tiền tố Level (Ví dụ: 1ST VERTICAL PENETRATION SLEEVE) và Hậu tố" Foreground="#94A3B8" FontSize="12" Margin="0,3,0,0"/>
+            </StackPanel>
+        </Border>
+
+        <!-- Input Parameters Group -->
+        <Border Grid.Row="1" Background="White" BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="6" Padding="15" Margin="0,0,0,15">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="20"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="10"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="10"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <!-- Base Name -->
+                <StackPanel Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="3">
+                    <TextBlock Text="Tên gốc chung (Base Name):" FontWeight="Bold" Margin="0,0,0,4"/>
+                    <TextBox x:Name="txt_basename" ToolTip="Tên chung áp dụng cho các view được chọn (ví dụ: VERTICAL PENETRATION SLEEVE)"/>
+                </StackPanel>
+
+                <!-- Prefix Options -->
+                <StackPanel Grid.Row="2" Grid.Column="0">
+                    <TextBlock Text="Tiền tố (Prefix):" FontWeight="Bold" Margin="0,0,0,4"/>
+                    <CheckBox x:Name="chk_level_prefix" Content="Tự động lấy Tên Level làm Tiền tố (vd: 1ST, 2ND)" Margin="0,0,0,6"/>
+                    <TextBlock Text="Tiền tố bổ sung (nếu có):" FontSize="11" Foreground="#64748B" Margin="0,0,0,2"/>
+                    <TextBox x:Name="txt_custom_prefix" ToolTip="Nhập thêm tiền tố cố định (ví dụ: ARC_)"/>
+                </StackPanel>
+
+                <!-- Suffix & Separator Options -->
+                <StackPanel Grid.Row="2" Grid.Column="2">
+                    <TextBlock Text="Hậu tố &amp; Ký tự phân cách:" FontWeight="Bold" Margin="0,0,0,4"/>
+                    <Grid Margin="0,0,0,6">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="10"/>
+                            <ColumnDefinition Width="100"/>
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Grid.Column="0">
+                            <TextBlock Text="Hậu tố (Suffix):" FontSize="11" Foreground="#64748B" Margin="0,0,0,2"/>
+                            <TextBox x:Name="txt_suffix" ToolTip="Nhập hậu tố (ví dụ: _REV01)"/>
+                        </StackPanel>
+                        <StackPanel Grid.Column="2">
+                            <TextBlock Text="Phân cách:" FontSize="11" Foreground="#64748B" Margin="0,0,0,2"/>
+                            <TextBox x:Name="txt_separator" TextAlignment="Center" ToolTip="Ký tự giữa Tiền tố - Tên gốc - Hậu tố (mặc định là khoảng trắng)"/>
+                        </StackPanel>
+                    </Grid>
+                    <CheckBox x:Name="chk_auto_index" Content="Tự động đánh số (-01, -02) nếu trùng tên trong cùng tầng" Margin="0,4,0,0"/>
+                </StackPanel>
+
+            </Grid>
+        </Border>
+
+        <!-- Live Preview Table -->
+        <GroupBox Grid.Row="2" Header="Bảng Xem Trước Tên Mới Dự Kiến (Live Preview)" FontWeight="Bold" Foreground="#1E293B">
+            <DataGrid x:Name="dtg_preview" AutoGenerateColumns="False" CanUserAddRows="False" 
+                      GridLinesVisibility="Horizontal" HeadersVisibility="Column"
+                      Background="White" RowHeaderWidth="0" Margin="0,8,0,0"
+                      FontSize="12" FontFamily="Segoe UI">
+                <DataGrid.Columns>
+                    <DataGridCheckBoxColumn Header="Đổi tên" Binding="{Binding is_selected}" Width="75"/>
+                    <DataGridTextColumn Header="Tên View Hiện Tại" Binding="{Binding original_name}" Width="*" IsReadOnly="True"/>
+                    <DataGridTextColumn Header="Level / Tầng" Binding="{Binding level_name}" Width="110" IsReadOnly="True"/>
+                    <DataGridTextColumn Header="Tên Mới Dự Kiến (IN HOA)" Binding="{Binding calculated_name}" Width="2.2*" Foreground="#2563EB" FontWeight="Bold"/>
+                </DataGrid.Columns>
+            </DataGrid>
+        </GroupBox>
+
+        <!-- Action Buttons -->
+        <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,15,0,0">
+            <Button x:Name="btn_apply" Content="Đổi Tên View (Apply)" Click="btn_apply_click" Background="#2563EB" Foreground="White" BorderThickness="0"/>
+            <Button x:Name="btn_cancel" Content="Hủy Bỏ (Cancel)" Click="btn_cancel_click" Background="#E2E8F0" Foreground="#334155" BorderThickness="0"/>
+        </StackPanel>
+    </Grid>
+</Window>
