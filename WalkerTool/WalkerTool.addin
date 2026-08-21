@@ -1,0 +1,11 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<RevitAddIns>
+  <AddIn Type="Command">
+    <Name>NDL Walker</Name>
+    <Assembly>WalkerTool.dll</Assembly>
+    <FullClassName>NDL.WalkerTool.Commands.WalkerCommand</FullClassName>
+    <ClientId>B8E17F20-7B1A-4C2E-8E2B-0F6F5E3D2C1B</ClientId>
+    <VendorId>NDL</VendorId>
+    <VendorDescription>NDL Revit Addin Suite</VendorDescription>
+  </AddIn>
+</RevitAddIns>

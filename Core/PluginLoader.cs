@@ -198,6 +198,7 @@ namespace NDL
                     r.EndsWith("autoconnect.png", StringComparison.OrdinalIgnoreCase) ||
                     r.EndsWith("viewrename.png", StringComparison.OrdinalIgnoreCase) ||
                     r.EndsWith("makearm.png", StringComparison.OrdinalIgnoreCase) ||
+                    r.EndsWith("walker.png", StringComparison.OrdinalIgnoreCase) ||
                     r.EndsWith("sprinkler.png", StringComparison.OrdinalIgnoreCase));
 
                 if (!string.IsNullOrEmpty(resName))
@@ -330,6 +331,7 @@ namespace NDL
             if (folderName.Equals("AutoDimDuctTool", StringComparison.OrdinalIgnoreCase)) return "SLEEVE";
             if (folderName.Equals("AlignMepToCeiling", StringComparison.OrdinalIgnoreCase)) return "AUTO TOOL";
             if (folderName.Equals("CreateTeeTool", StringComparison.OrdinalIgnoreCase)) return "MEP / PIPE";
+            if (folderName.Equals("WalkerTool", StringComparison.OrdinalIgnoreCase) || folderName.Equals("Walker", StringComparison.OrdinalIgnoreCase)) return "MEP / PIPE";
             if (folderName.Equals("MakeArmTool", StringComparison.OrdinalIgnoreCase)) return "FIRE";
             if (folderName.Equals("ViewRenameTool", StringComparison.OrdinalIgnoreCase) || folderName.Equals("BatchRenameViewsTool", StringComparison.OrdinalIgnoreCase)) return "VIEWS";
 
@@ -339,6 +341,8 @@ namespace NDL
         private static string FormatButtonTitle(string className)
         {
             string clean = className.Replace("Command", "").Replace("Cmd", "");
+            if (clean.Equals("Walker", StringComparison.OrdinalIgnoreCase) || clean.Equals("PipeWalker", StringComparison.OrdinalIgnoreCase) || clean.Equals("MepWalker", StringComparison.OrdinalIgnoreCase))
+                return "Pipe\nWalker";
             if (clean.Equals("MakeArm", StringComparison.OrdinalIgnoreCase))
                 return "Make\nArm";
             if (clean.Equals("ViewRename", StringComparison.OrdinalIgnoreCase) || clean.Equals("BatchRenameViews", StringComparison.OrdinalIgnoreCase))
