@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Windows;
 
@@ -9,26 +10,100 @@ namespace NDL_Installer
 {
     public partial class MainWindow : Window
     {
-        private const string BaseDir = @"D:\NDL";
-        private const string Net48CoreDll = @"D:\NDL\Core\bin\Release\net48\NDLCore.dll";
-        private const string Net80CoreDll = @"D:\NDL\Core\bin\Release\net8.0-windows\NDLCore.dll";
+        [DllImport("kernel32", CharSet = CharSet.Unicode, SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        private static extern bool DeleteFile(string name);
+
+        private string _baseDir;
 
         public MainWindow()
         {
             InitializeComponent();
+            _baseDir = ResolveBaseDir();
             ScanNDLTools();
             ScanRevitVersions();
         }
 
+        private string ResolveBaseDir()
+        {
+            try
+            {
+                string appDir = AppDomain.CurrentDomain.BaseDirectory.TrimEnd('\\', '/');
+
+                if (Directory.Exists(Path.Combine(appDir, "Core")) ||
+                    Directory.Exists(Path.Combine(appDir, "AutoSleeveTool")) ||
+                    Directory.Exists(Path.Combine(appDir, "AlignTagTool")))
+                {
+                    return appDir;
+                }
+
+                DirectoryInfo parent = new DirectoryInfo(appDir);
+                while (parent != null)
+                {
+                    if (Directory.Exists(Path.Combine(parent.FullName, "Core")) ||
+                        Directory.Exists(Path.Combine(parent.FullName, "AutoSleeveTool")) ||
+                        Directory.Exists(Path.Combine(parent.FullName, "AlignTagTool")))
+                    {
+                        return parent.FullName;
+                    }
+                    parent = parent.Parent;
+                }
+            }
+            catch { }
+
+            if (Directory.Exists(@"D:\NDL")) return @"D:\NDL";
+
+            string progDataDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "Autodesk", "Revit", "NDL_Toolkit");
+            if (Directory.Exists(progDataDir)) return progDataDir;
+
+            string appDataDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Autodesk", "Revit", "NDL_Toolkit");
+            if (Directory.Exists(appDataDir)) return appDataDir;
+
+            return AppDomain.CurrentDomain.BaseDirectory.TrimEnd('\\', '/');
+        }
+
+        private string GetCoreDllPath(bool isNet8)
+        {
+            string targetFramework = isNet8 ? "net8.0-windows" : "net48";
+            string filter = isNet8 ? "net8" : "net48";
+
+            string pRelease = Path.Combine(_baseDir, "Core", "bin", "Release", targetFramework, "NDLCore.dll");
+            if (File.Exists(pRelease)) return pRelease;
+
+            string pDebug = Path.Combine(_baseDir, "Core", "bin", "Debug", targetFramework, "NDLCore.dll");
+            if (File.Exists(pDebug)) return pDebug;
+
+            if (Directory.Exists(Path.Combine(_baseDir, "Core")))
+            {
+                var match = Directory.GetFiles(Path.Combine(_baseDir, "Core"), "NDLCore.dll", SearchOption.AllDirectories)
+                    .Where(f => f.IndexOf("\\obj\\", StringComparison.OrdinalIgnoreCase) < 0 &&
+                                f.IndexOf("\\ref\\", StringComparison.OrdinalIgnoreCase) < 0 &&
+                                f.IndexOf(filter, StringComparison.OrdinalIgnoreCase) >= 0)
+                    .OrderByDescending(f => f.IndexOf("\\Release\\", StringComparison.OrdinalIgnoreCase) >= 0 ? 2 : 1)
+                    .FirstOrDefault();
+
+                if (!string.IsNullOrEmpty(match)) return match;
+            }
+
+            var anyMatch = Directory.GetFiles(_baseDir, "NDLCore.dll", SearchOption.AllDirectories)
+                .Where(f => f.IndexOf("\\obj\\", StringComparison.OrdinalIgnoreCase) < 0 &&
+                            f.IndexOf("\\ref\\", StringComparison.OrdinalIgnoreCase) < 0)
+                .FirstOrDefault();
+
+            if (!string.IsNullOrEmpty(anyMatch)) return anyMatch;
+
+            return pRelease;
+        }
+
         private void ScanNDLTools()
         {
-            if (!Directory.Exists(BaseDir))
+            if (!Directory.Exists(_baseDir))
             {
-                txtToolList.Text = "⚠️ Không tìm thấy thư mục D:\\NDL!";
+                txtToolList.Text = $"⚠️ Không tìm thấy thư mục cài đặt: {_baseDir}";
                 return;
             }
 
-            string[] subFolders = Directory.GetDirectories(BaseDir);
+            string[] subFolders = Directory.GetDirectories(_baseDir);
             List<string> toolNames = new List<string>();
 
             foreach (string folder in subFolders)
@@ -50,7 +125,7 @@ namespace NDL_Installer
             }
             else
             {
-                txtToolList.Text = "Không có tool nào trong D:\\NDL";
+                txtToolList.Text = $"Không tìm thấy tool con trong: {_baseDir}";
             }
         }
 
@@ -63,6 +138,12 @@ namespace NDL_Installer
             if (raw.Equals("RevitAutoConnectTool", StringComparison.OrdinalIgnoreCase)) return "Revit AutoConnect";
             if (raw.Equals("PendentSprinklerOptimizer", StringComparison.OrdinalIgnoreCase)) return "Sprinkler Optimizer";
             if (raw.Equals("AlignMepToCeiling", StringComparison.OrdinalIgnoreCase)) return "Align MEP to Ceiling";
+            if (raw.Equals("CreateTeeTool", StringComparison.OrdinalIgnoreCase)) return "Create Pipe Tee";
+            if (raw.Equals("MakeArmTool", StringComparison.OrdinalIgnoreCase)) return "Make Arm Sprinkler";
+            if (raw.Equals("ViewRenameTool", StringComparison.OrdinalIgnoreCase)) return "View Rename";
+            if (raw.Equals("OffsetPipeTool", StringComparison.OrdinalIgnoreCase)) return "Offset Pipe";
+            if (raw.Equals("PipePlaceholderTool", StringComparison.OrdinalIgnoreCase)) return "Pipe Placeholder";
+            if (raw.Equals("PlaceFamilyByLayerTool", StringComparison.OrdinalIgnoreCase)) return "Place Family By Layer";
             return raw;
         }
 
@@ -112,10 +193,32 @@ namespace NDL_Installer
             txtLog.ScrollToEnd();
         }
 
+        private void UnblockDirectoryFiles(string path)
+        {
+            try
+            {
+                if (!Directory.Exists(path)) return;
+                var files = Directory.GetFiles(path, "*.*", SearchOption.AllDirectories);
+                foreach (var file in files)
+                {
+                    try
+                    {
+                        DeleteFile(file + ":Zone.Identifier");
+                    }
+                    catch { }
+                }
+            }
+            catch { }
+        }
+
         private void BtnInstall_Click(object sender, RoutedEventArgs e)
         {
             txtLog.Clear();
             Log("Bắt đầu cài đặt bộ công cụ NDL Addin...");
+            Log($"Thư mục nguồn NDL: {_baseDir}");
+
+            // Unblock all DLL files to prevent Windows Defender / SmartScreen blocking
+            UnblockDirectoryFiles(_baseDir);
 
             var targetFolders = GetRevitAddinFolders();
             if (targetFolders.Count == 0)
@@ -130,10 +233,12 @@ namespace NDL_Installer
                 string version = Path.GetFileName(folder);
                 int.TryParse(version, out int year);
 
-                string targetDll = Net48CoreDll;
-                if (year >= 2025 && File.Exists(Net80CoreDll))
+                bool isNet8 = year >= 2025;
+                string targetDll = GetCoreDllPath(isNet8);
+
+                if (!File.Exists(targetDll))
                 {
-                    targetDll = Net80CoreDll;
+                    Log($"⚠️ Cảnh báo: Chưa tìm thấy file NDLCore.dll tại '{targetDll}'");
                 }
 
                 string manifest = $@"<?xml=""1.0"" encoding=""utf-8""?>

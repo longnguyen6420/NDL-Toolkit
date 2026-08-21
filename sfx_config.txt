@@ -1,10 +1,10 @@
 Title=Cai dat Bo Tool NDL cho Revit
-Path=D:\NDL
+Path=%ProgramData%\Autodesk\Revit\NDL_Toolkit
 SavePath
 Setup=NDL_Setup.exe
 Overwrite=1
 Text
 {
-Chao mừng ban đen voi Bo Tool NDL Revit Add-in Suite.
+Chao mung ban den voi Bo Tool NDL Revit Add-in Suite.
 Nhan 'Install' de tu dong giai nen va mo Bang Cai Dat Add-in cho Revit.
 }

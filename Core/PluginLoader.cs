@@ -81,9 +81,8 @@ namespace NDL
                 }
 
                 var candidateDlls = Directory.GetFiles(folderPath, "*.dll", SearchOption.AllDirectories)
-                    .Where(f => (f.IndexOf("\\bin\\Release\\", StringComparison.OrdinalIgnoreCase) >= 0 ||
-                                 f.IndexOf("\\bin\\Debug\\", StringComparison.OrdinalIgnoreCase) >= 0) &&
-                                f.IndexOf("\\obj\\", StringComparison.OrdinalIgnoreCase) < 0 &&
+                    .Where(f => f.IndexOf("\\obj\\", StringComparison.OrdinalIgnoreCase) < 0 &&
+                                f.IndexOf("\\.vs\\", StringComparison.OrdinalIgnoreCase) < 0 &&
                                 f.IndexOf("\\ref\\", StringComparison.OrdinalIgnoreCase) < 0 &&
                                 f.IndexOf("\\refint\\", StringComparison.OrdinalIgnoreCase) < 0)
                     .ToList();
@@ -92,14 +91,16 @@ namespace NDL
                 string targetDll = candidateDlls
                     .Where(f => f.IndexOf(targetFrameworkFilter, StringComparison.OrdinalIgnoreCase) >= 0)
                     .Where(f => !f.EndsWith("BatchRenameViewsTool.dll", StringComparison.OrdinalIgnoreCase))
-                    .OrderByDescending(f => File.GetLastWriteTime(f))
+                    .OrderByDescending(f => f.IndexOf("\\Release\\", StringComparison.OrdinalIgnoreCase) >= 0 ? 2 : 1)
+                    .ThenByDescending(f => File.GetLastWriteTime(f))
                     .FirstOrDefault();
 
                 if (string.IsNullOrEmpty(targetDll))
                 {
                     targetDll = candidateDlls
                         .Where(f => !f.EndsWith("BatchRenameViewsTool.dll", StringComparison.OrdinalIgnoreCase))
-                        .OrderByDescending(f => File.GetLastWriteTime(f))
+                        .OrderByDescending(f => f.IndexOf("\\Release\\", StringComparison.OrdinalIgnoreCase) >= 0 ? 2 : 1)
+                        .ThenByDescending(f => File.GetLastWriteTime(f))
                         .FirstOrDefault();
                 }
 

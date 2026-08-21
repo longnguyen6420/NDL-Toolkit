@@ -19,22 +19,39 @@ namespace NDL
         {
             get
             {
-                if (Directory.Exists(@"D:\NDL")) return @"D:\NDL";
                 try
                 {
-                    string asmDir = Path.GetDirectoryName(AssemblyPath);
-                    DirectoryInfo current = new DirectoryInfo(asmDir);
-                    while (current != null)
+                    string asmPath = AssemblyPath;
+                    if (!string.IsNullOrEmpty(asmPath) && File.Exists(asmPath))
                     {
-                        if (current.Name.Equals("NDL", StringComparison.OrdinalIgnoreCase))
+                        string asmDir = Path.GetDirectoryName(asmPath);
+                        DirectoryInfo current = new DirectoryInfo(asmDir);
+                        while (current != null)
                         {
-                            return current.FullName;
+                            if (Directory.Exists(Path.Combine(current.FullName, "Core")) ||
+                                Directory.Exists(Path.Combine(current.FullName, "AutoSleeveTool")) ||
+                                Directory.Exists(Path.Combine(current.FullName, "AlignTagTool")) ||
+                                Directory.Exists(Path.Combine(current.FullName, "MakeArmTool")) ||
+                                Directory.Exists(Path.Combine(current.FullName, "CreateTeeTool")))
+                            {
+                                return current.FullName;
+                            }
+                            current = current.Parent;
                         }
-                        current = current.Parent;
                     }
                 }
                 catch { }
-                return @"D:\NDL";
+
+                // Fallbacks
+                if (Directory.Exists(@"D:\NDL")) return @"D:\NDL";
+
+                string progDataDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "Autodesk", "Revit", "NDL_Toolkit");
+                if (Directory.Exists(progDataDir)) return progDataDir;
+
+                string appDataDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Autodesk", "Revit", "NDL_Toolkit");
+                if (Directory.Exists(appDataDir)) return appDataDir;
+
+                return Path.GetDirectoryName(AssemblyPath);
             }
         }
 
