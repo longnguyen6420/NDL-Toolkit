@@ -70,7 +70,7 @@ if (Test-Path $winrarRar) {
 
     & $winrarRar a -sfx -z"$sfxConfig" -r `
         -x"*\.git" -x"*\.git\*" -x"*\obj" -x"*\obj\*" -x"*\.vs" -x"*\.vs\*" -x"*.user" -x"*.suo" -x"*.tmp" -x"*.log" -x"*NDL_Revit_Tools_Installer.exe" `
-        "$sfxOutputFile" "$baseDir\*"
+        "$sfxOutputFile" *
 
     if (Test-Path $sfxOutputFile) {
         Write-Host "  -> [OK] Successfully created 1-file Installer: $sfxOutputFile" -ForegroundColor Green
