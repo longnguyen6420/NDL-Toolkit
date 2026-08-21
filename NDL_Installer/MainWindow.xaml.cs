@@ -67,12 +67,15 @@ namespace NDL_Installer
             string targetFramework = isNet8 ? "net8.0-windows" : "net48";
             string filter = isNet8 ? "net8" : "net48";
 
+            // 1. Direct Release path for target framework
             string pRelease = Path.Combine(_baseDir, "Core", "bin", "Release", targetFramework, "NDLCore.dll");
             if (File.Exists(pRelease)) return pRelease;
 
+            // 2. Direct Debug path for target framework
             string pDebug = Path.Combine(_baseDir, "Core", "bin", "Debug", targetFramework, "NDLCore.dll");
             if (File.Exists(pDebug)) return pDebug;
 
+            // 3. Search in Core folder for matching framework
             if (Directory.Exists(Path.Combine(_baseDir, "Core")))
             {
                 var match = Directory.GetFiles(Path.Combine(_baseDir, "Core"), "NDLCore.dll", SearchOption.AllDirectories)
@@ -85,12 +88,22 @@ namespace NDL_Installer
                 if (!string.IsNullOrEmpty(match)) return match;
             }
 
-            var anyMatch = Directory.GetFiles(_baseDir, "NDLCore.dll", SearchOption.AllDirectories)
-                .Where(f => f.IndexOf("\\obj\\", StringComparison.OrdinalIgnoreCase) < 0 &&
-                            f.IndexOf("\\ref\\", StringComparison.OrdinalIgnoreCase) < 0)
-                .FirstOrDefault();
+            // 4. Fallback to alternative framework (e.g. net48 if net8 is missing)
+            string altFramework = isNet8 ? "net48" : "net8.0-windows";
+            string pAlt = Path.Combine(_baseDir, "Core", "bin", "Release", altFramework, "NDLCore.dll");
+            if (File.Exists(pAlt)) return pAlt;
 
-            if (!string.IsNullOrEmpty(anyMatch)) return anyMatch;
+            // 5. Search anywhere in baseDir for any NDLCore.dll
+            if (Directory.Exists(_baseDir))
+            {
+                var anyMatch = Directory.GetFiles(_baseDir, "NDLCore.dll", SearchOption.AllDirectories)
+                    .Where(f => f.IndexOf("\\obj\\", StringComparison.OrdinalIgnoreCase) < 0 &&
+                                f.IndexOf("\\ref\\", StringComparison.OrdinalIgnoreCase) < 0)
+                    .OrderByDescending(f => f.IndexOf("\\Release\\", StringComparison.OrdinalIgnoreCase) >= 0 ? 2 : 1)
+                    .FirstOrDefault();
+
+                if (!string.IsNullOrEmpty(anyMatch)) return anyMatch;
+            }
 
             return pRelease;
         }
@@ -153,11 +166,17 @@ namespace NDL_Installer
             string appData = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Autodesk", "Revit", "Addins");
             string progData = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "Autodesk", "Revit", "Addins");
 
+            HashSet<string> detectedYears = new HashSet<string>();
+
             if (Directory.Exists(appData))
             {
                 foreach (string dir in Directory.GetDirectories(appData))
                 {
-                    if (!list.Contains(dir)) list.Add(dir);
+                    string leaf = Path.GetFileName(dir);
+                    if (int.TryParse(leaf, out int yr) && yr >= 2018 && yr <= 2030)
+                    {
+                        detectedYears.Add(leaf);
+                    }
                 }
             }
 
@@ -165,7 +184,40 @@ namespace NDL_Installer
             {
                 foreach (string dir in Directory.GetDirectories(progData))
                 {
-                    if (!list.Contains(dir)) list.Add(dir);
+                    string leaf = Path.GetFileName(dir);
+                    if (int.TryParse(leaf, out int yr) && yr >= 2018 && yr <= 2030)
+                    {
+                        detectedYears.Add(leaf);
+                    }
+                }
+            }
+
+            // Check Program Files for installed versions
+            for (int y = 2020; y <= 2026; y++)
+            {
+                if (Directory.Exists($@"C:\Program Files\Autodesk\Revit {y}"))
+                {
+                    detectedYears.Add(y.ToString());
+                }
+            }
+
+            if (detectedYears.Count == 0)
+            {
+                detectedYears.Add("2024");
+                detectedYears.Add("2025");
+            }
+
+            // Always write to user APPDATA (never throws Access Denied)
+            foreach (string year in detectedYears.OrderBy(y => y))
+            {
+                string userFolder = Path.Combine(appData, year);
+                if (!Directory.Exists(userFolder))
+                {
+                    try { Directory.CreateDirectory(userFolder); } catch { }
+                }
+                if (Directory.Exists(userFolder) && !list.Contains(userFolder))
+                {
+                    list.Add(userFolder);
                 }
             }
 
