@@ -154,6 +154,7 @@ namespace NDL_Installer
             if (raw.Equals("CreateTeeTool", StringComparison.OrdinalIgnoreCase)) return "Create Pipe Tee";
             if (raw.Equals("MakeArmTool", StringComparison.OrdinalIgnoreCase)) return "Make Arm Sprinkler";
             if (raw.Equals("WalkerTool", StringComparison.OrdinalIgnoreCase) || raw.Equals("Walker", StringComparison.OrdinalIgnoreCase)) return "Pipe Walker (Chọn toàn bộ hệ thống)";
+            if (raw.Equals("AutoHangerTool", StringComparison.OrdinalIgnoreCase) || raw.Equals("HangerTool", StringComparison.OrdinalIgnoreCase)) return "Auto Hanger & Insert (Tự động gắn ti treo & Insert)";
             if (raw.Equals("ViewRenameTool", StringComparison.OrdinalIgnoreCase)) return "View Rename";
             if (raw.Equals("OffsetPipeTool", StringComparison.OrdinalIgnoreCase)) return "Offset Pipe";
             if (raw.Equals("PipePlaceholderTool", StringComparison.OrdinalIgnoreCase)) return "Pipe Placeholder";
