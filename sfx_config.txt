@@ -1,5 +1,5 @@
 Title=Cai dat Bo Tool NDL cho Revit
-Path=%ProgramData%\Autodesk\Revit\NDL_Toolkit
+Path=%APPDATA%\Autodesk\Revit\NDL_Toolkit
 SavePath
 Setup=NDL_Setup.exe
 Overwrite=1
