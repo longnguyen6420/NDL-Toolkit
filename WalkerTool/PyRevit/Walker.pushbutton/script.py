@@ -1,4 +1,4 @@
-﻿# -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 """
 NDL Walker - Tự động chọn toàn bộ hệ thống đường ống kết nối
 Author: NDL Toolkit
@@ -60,5 +60,3 @@ else:
     for eid in visited:
         id_list.Add(eid)
     uidoc.Selection.SetElementIds(id_list)
-    
-    forms.alert(u"Đã chọn thành công {} đối tượng trong toàn bộ hệ thống liên kết!".format(len(visited)), title="NDL Walker")

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -78,24 +78,6 @@ namespace NDL.WalkerTool.Commands
 
             // 4. Update Revit UI Selection
             uidoc.Selection.SetElementIds(walkResult.ElementIds);
-
-            // 5. Show summary report
-            StringBuilder sb = new StringBuilder();
-            sb.AppendLine($"⚡ Đã quét và chọn thành công toàn bộ hệ thống gồm {walkResult.TotalCount} đối tượng:\n");
-            foreach (var kvp in walkResult.CategoryCounts.OrderByDescending(k => k.Value))
-            {
-                sb.AppendLine($"  • {kvp.Key}: {kvp.Value} đối tượng");
-            }
-
-            TaskDialog dialog = new TaskDialog("NDL Walker - Kết quả chọn hệ thống")
-            {
-                MainInstruction = $"Đã chọn {walkResult.TotalCount} đối tượng trong mạng lưới!",
-                MainContent = sb.ToString(),
-                CommonButtons = TaskDialogCommonButtons.Ok,
-                DefaultButton = TaskDialogResult.Ok,
-                MainIcon = TaskDialogIcon.TaskDialogIconInformation
-            };
-            dialog.Show();
 
             return Result.Succeeded;
         }
