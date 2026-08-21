@@ -10,11 +10,11 @@ namespace NDL.AutoHangerTool.Services
 {
     public class HangerSettings
     {
-        public double SpacingMm { get; set; } = 2000.0;
-        public double FittingOffsetMm { get; set; } = 300.0;
+        public double SpacingInches { get; set; } = 96.0; // 8 ft default spacing
+        public double FittingOffsetInches { get; set; } = 12.0; // 1 ft from fittings
         public bool PlaceNearFittings { get; set; } = true;
-        public string RodSize { get; set; } = "M10";
-        public double DefaultSlabHeightMm { get; set; } = 3500.0;
+        public string RodSize { get; set; } = "1/2\"";
+        public double DefaultSlabHeightInches { get; set; } = 144.0; // 12 ft
     }
 
     public static class HangerPlacementService
@@ -25,8 +25,8 @@ namespace NDL.AutoHangerTool.Services
                 return 0;
 
             int count = 0;
-            double spacingFt = settings.SpacingMm / 304.8;
-            double fittingOffsetFt = settings.FittingOffsetMm / 304.8;
+            double spacingFt = settings.SpacingInches / 12.0;
+            double fittingOffsetFt = settings.FittingOffsetInches / 12.0;
 
             // Prepare 3D View for Ray Projection (ReferenceIntersector)
             View3D view3D = new FilteredElementCollector(doc)
@@ -61,7 +61,7 @@ namespace NDL.AutoHangerTool.Services
 
                     Curve curve = lc.Curve;
                     double length = curve.Length;
-                    if (length < 1.0) continue; // Skip very short segments (< 300mm)
+                    if (length < 1.0) continue; // Skip very short segments (< 1 foot)
 
                     List<double> paramList = new List<double>();
 
@@ -101,7 +101,7 @@ namespace NDL.AutoHangerTool.Services
                         XYZ pt = curve.Evaluate(param, true);
 
                         // Find slab/beam elevation above pipe
-                        double topZ = levelElev + (settings.DefaultSlabHeightMm / 304.8);
+                        double topZ = levelElev + (settings.DefaultSlabHeightInches / 12.0);
                         if (intersector != null)
                         {
                             try

@@ -31,7 +31,7 @@ namespace NDL.AutoHangerTool.UI
             _doc = doc;
             _pipes = pipes;
 
-            txtSelectedInfo.Text = $"Đã chọn: {_pipes.Count} đoạn ống cơ điện";
+            txtSelectedInfo.Text = $"Selected: {_pipes.Count} pipe segments";
             LoadFamilyList();
         }
 
@@ -70,7 +70,7 @@ namespace NDL.AutoHangerTool.UI
                 cboHangerFamily.Items.Add(new HangerFamilyItem
                 {
                     Symbol = null,
-                    DisplayName = "[Chưa có Family - Bấm nút 'Tự Động Tạo' bên dưới]"
+                    DisplayName = "[No Family Loaded - Click 'Auto-Generate' Below]"
                 });
                 cboHangerFamily.SelectedIndex = 0;
             }
@@ -89,34 +89,34 @@ namespace NDL.AutoHangerTool.UI
             {
                 HangerFamilyService.GetOrLoadHangerFamilySymbol(_doc);
                 LoadFamilyList();
-                TaskDialog.Show("NDL Hanger", "✅ Đã tự động tạo Family chuẩn 'NDL_Hanger_Insert.rfa' và nạp vào dự án thành công!");
+                TaskDialog.Show("NDL Hanger", "✅ Standard 'NDL_Hanger_Insert.rfa' family created and loaded successfully into project!");
             }
             else
             {
-                TaskDialog.Show("NDL Hanger", "⚠️ Đã nạp danh sách Family có sẵn trong dự án. Bạn có thể chọn 1 Family bất kỳ ở ô danh sách phía trên.");
+                TaskDialog.Show("NDL Hanger", "⚠️ Loaded existing project families. You can select any family from the dropdown list above.");
             }
         }
 
         private void BtnPlace_Click(object sender, RoutedEventArgs e)
         {
-            double spacing = 2000;
-            double.TryParse(txtSpacing.Text, out spacing);
+            double spacingInches = 96;
+            double.TryParse(txtSpacing.Text, out spacingInches);
 
-            double offset = 300;
-            double.TryParse(txtFittingOffset.Text, out offset);
+            double offsetInches = 12;
+            double.TryParse(txtFittingOffset.Text, out offsetInches);
 
-            double slabHeight = 3600;
-            double.TryParse(txtSlabHeight.Text, out slabHeight);
+            double slabHeightInches = 144;
+            double.TryParse(txtSlabHeight.Text, out slabHeightInches);
 
-            string rodSize = (cboRodSize.SelectedItem as ComboBoxItem)?.Content?.ToString() ?? "M10";
+            string rodSize = (cboRodSize.SelectedItem as ComboBoxItem)?.Content?.ToString() ?? "1/2\"";
 
             var settings = new HangerSettings
             {
-                SpacingMm = spacing,
-                FittingOffsetMm = offset,
+                SpacingInches = spacingInches,
+                FittingOffsetInches = offsetInches,
                 PlaceNearFittings = chkNearFittings.IsChecked == true,
                 RodSize = rodSize,
-                DefaultSlabHeightMm = slabHeight
+                DefaultSlabHeightInches = slabHeightInches
             };
 
             FamilySymbol selectedSymbol = (cboHangerFamily.SelectedItem as HangerFamilyItem)?.Symbol;
@@ -127,7 +127,7 @@ namespace NDL.AutoHangerTool.UI
 
             if (selectedSymbol == null)
             {
-                TaskDialog.Show("NDL Hanger", "Vui lòng chọn 1 Family Ti Treo từ danh sách hoặc bấm nút 'Tự Động Tạo' bên dưới.");
+                TaskDialog.Show("NDL Hanger", "Please select a Hanger Family from the dropdown or click 'Auto-Generate' below.");
                 return;
             }
 
@@ -143,7 +143,7 @@ namespace NDL.AutoHangerTool.UI
 
             int placedCount = HangerPlacementService.PlaceHangersOnPipes(_doc, _pipes, settings, selectedSymbol);
 
-            TaskDialog.Show("NDL Hanger & Insert", $"✅ Đã gắn thành công {placedCount} điểm ti treo & Insert trần trên {_pipes.Count} đoạn ống!");
+            TaskDialog.Show("NDL Hanger & Insert", $"✅ Successfully placed {placedCount} hangers/inserts across {_pipes.Count} pipe segments!");
             DialogResult = true;
             Close();
         }

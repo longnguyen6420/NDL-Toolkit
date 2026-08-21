@@ -43,7 +43,7 @@ namespace NDL.AutoHangerTool.Commands
                     IList<Reference> pickedRefs = uidoc.Selection.PickObjects(
                         ObjectType.Element,
                         new PipeSelectionFilter(),
-                        "NDL Hanger: Quét chọn các đoạn ống cần rải ti treo & insert:");
+                        "NDL Hanger: Select pipes or MEP curves to place hangers and inserts:");
 
                     if (pickedRefs != null)
                     {
@@ -65,7 +65,7 @@ namespace NDL.AutoHangerTool.Commands
 
             if (selectedPipes.Count == 0)
             {
-                TaskDialog.Show("NDL Auto Hanger", "Không có đoạn ống hợp lệ nào được chọn.");
+                TaskDialog.Show("NDL Auto Hanger", "No valid pipes or MEP curves were selected.");
                 return Result.Cancelled;
             }
 
