@@ -53,6 +53,22 @@ namespace NDL.AutoHangerTool.Services
             return null;
         }
 
+        public static List<FamilySymbol> GetAvailableHangerSymbols(Document doc)
+        {
+            var list = new FilteredElementCollector(doc)
+                .OfClass(typeof(FamilySymbol))
+                .Cast<FamilySymbol>()
+                .Where(s => s.Category != null && 
+                           (s.Category.Id.IntegerValue == (int)BuiltInCategory.OST_GenericModel ||
+                            s.Category.Id.IntegerValue == (int)BuiltInCategory.OST_PipeAccessory ||
+                            s.Category.Id.IntegerValue == (int)BuiltInCategory.OST_MechanicalEquipment))
+                .OrderBy(s => s.FamilyName)
+                .ThenBy(s => s.Name)
+                .ToList();
+
+            return list;
+        }
+
         public static FamilySymbol GetOrLoadHangerFamilySymbol(Document doc)
         {
             // 1. Check if already loaded in project
@@ -75,30 +91,31 @@ namespace NDL.AutoHangerTool.Services
                 return symbol;
             }
 
-            // 2. Ensure RFA exists or build it
+            // 2. Build RFA via Revit API
             string rfaPath = GetFamilyRfaPath();
-            if (!File.Exists(rfaPath))
-            {
-                CreateStandardHangerFamily(doc.Application);
-            }
+            CreateStandardHangerFamily(doc.Application);
 
             if (File.Exists(rfaPath))
             {
-                using (Transaction t = new Transaction(doc, "Load Hanger Family"))
+                try
                 {
-                    t.Start();
-                    if (doc.LoadFamily(rfaPath, out Family family))
+                    using (Transaction t = new Transaction(doc, "Load Hanger Family"))
                     {
-                        symbol = family.GetFamilySymbolIds()
-                            .Select(id => doc.GetElement(id) as FamilySymbol)
-                            .FirstOrDefault();
-                        if (symbol != null && !symbol.IsActive)
+                        t.Start();
+                        if (doc.LoadFamily(rfaPath, out Family family))
                         {
-                            symbol.Activate();
+                            symbol = family.GetFamilySymbolIds()
+                                .Select(id => doc.GetElement(id) as FamilySymbol)
+                                .FirstOrDefault();
+                            if (symbol != null && !symbol.IsActive)
+                            {
+                                symbol.Activate();
+                            }
                         }
+                        t.Commit();
                     }
-                    t.Commit();
                 }
+                catch { }
             }
 
             // 3. Fallback: Any Generic Model FamilySymbol
@@ -168,24 +185,17 @@ namespace NDL.AutoHangerTool.Services
                     };
                     rod.SetVisibility(vis);
 
-                    // Draw 2D Symbolic Cross / Circle on Floor Plan (Symbolic Lines for 2D Plan View)
-                    Subcategory subCat = null;
+                    // Add 2D Cross lines
                     try
                     {
-                        Category cat = famDoc.Settings.Categories.get_Item(BuiltInCategory.OST_GenericModel);
-                        subCat = cat.SubCategories.Cast<Subcategory>().FirstOrDefault();
+                        XYZ crossA1 = new XYZ(-0.15, 0, 0);
+                        XYZ crossA2 = new XYZ(0.15, 0, 0);
+                        XYZ crossB1 = new XYZ(0, -0.15, 0);
+                        XYZ crossB2 = new XYZ(0, 0.15, 0);
+                        famDoc.FamilyCreate.NewModelCurve(Line.CreateBound(crossA1, crossA2), sketchPlane);
+                        famDoc.FamilyCreate.NewModelCurve(Line.CreateBound(crossB1, crossB2), sketchPlane);
                     }
                     catch { }
-
-                    famDoc.FamilyCreate.NewSymbolicModelCurve(arc1, sketchPlane);
-                    famDoc.FamilyCreate.NewSymbolicModelCurve(arc2, sketchPlane);
-
-                    XYZ crossA1 = new XYZ(-0.1, 0, 0);
-                    XYZ crossA2 = new XYZ(0.1, 0, 0);
-                    XYZ crossB1 = new XYZ(0, -0.1, 0);
-                    XYZ crossB2 = new XYZ(0, 0.1, 0);
-                    famDoc.FamilyCreate.NewSymbolicModelCurve(Line.CreateBound(crossA1, crossA2), sketchPlane);
-                    famDoc.FamilyCreate.NewSymbolicModelCurve(Line.CreateBound(crossB1, crossB2), sketchPlane);
 
                     t.Commit();
                 }
