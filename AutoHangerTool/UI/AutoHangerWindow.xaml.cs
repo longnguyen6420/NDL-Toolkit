@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
@@ -125,6 +125,7 @@ namespace NDL.AutoHangerTool.UI
                 SpacingInches = spacingInches,
                 FittingOffsetInches = offsetInches,
                 PlaceNearFittings = chkNearFittings.IsChecked == true,
+                SkipVerticalPipes = chkSkipVertical.IsChecked == true,
                 RodSize = rodSize,
                 DefaultSlabHeightInches = slabHeightInches,
                 Mode = mode,

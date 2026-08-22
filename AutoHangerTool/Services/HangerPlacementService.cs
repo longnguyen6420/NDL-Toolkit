@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Autodesk.Revit.DB;
@@ -19,7 +19,8 @@ namespace NDL.AutoHangerTool.Services
     {
         public double SpacingInches { get; set; } = 96.0; // 8 ft default spacing
         public double FittingOffsetInches { get; set; } = 12.0; // 1 ft from fittings
-        public bool PlaceNearFittings { get; set; } = true;
+        public bool PlaceNearFittings { get; set; } = false; // Default: OFF (skip placing near fittings)
+        public bool SkipVerticalPipes { get; set; } = true; // Default: ON (only place on horizontal pipes)
         public string RodSize { get; set; } = "1/2\"";
         public double DefaultSlabHeightInches { get; set; } = 144.0; // 12 ft
 
@@ -92,6 +93,17 @@ namespace NDL.AutoHangerTool.Services
                     double length = curve.Length;
                     if (length < 1.0) continue; // Skip very short segments (< 1 foot)
 
+                    // Direction vector
+                    XYZ p0 = curve.GetEndPoint(0);
+                    XYZ p1 = curve.GetEndPoint(1);
+                    XYZ dir = (p1 - p0).Normalize();
+
+                    // Skip vertical pipes (risers): If |dir.Z| > 0.5 (sloped/vertical angle > 30 deg)
+                    if (settings.SkipVerticalPipes && Math.Abs(dir.Z) > 0.5)
+                    {
+                        continue;
+                    }
+
                     double pipeDiamInches = GetElementOuterDiameterInches(elem);
                     double pipeDiamFt = pipeDiamInches / 12.0;
 
@@ -106,10 +118,7 @@ namespace NDL.AutoHangerTool.Services
                         useDualRods = pipeDiamInches >= settings.DualRodThresholdInches;
                     }
 
-                    // Calculate direction and horizontal perpendicular vector
-                    XYZ p0 = curve.GetEndPoint(0);
-                    XYZ p1 = curve.GetEndPoint(1);
-                    XYZ dir = (p1 - p0).Normalize();
+                    // Calculate horizontal perpendicular vector
                     XYZ perp = new XYZ(-dir.Y, dir.X, 0);
                     if (perp.GetLength() < 0.001)
                     {
@@ -122,7 +131,7 @@ namespace NDL.AutoHangerTool.Services
 
                     List<double> paramList = new List<double>();
 
-                    // 1. Add points near fittings if enabled
+                    // 1. Add points near fittings if explicitly enabled
                     if (settings.PlaceNearFittings && length > fittingOffsetFt * 2)
                     {
                         paramList.Add(fittingOffsetFt / length);
@@ -143,11 +152,18 @@ namespace NDL.AutoHangerTool.Services
                             }
                         }
                     }
+                    else if (!settings.PlaceNearFittings)
+                    {
+                        // For pipes shorter than 1 spacing: place 1 hanger at midpoint if pipe is at least 3.5 ft
+                        if (length >= 3.5)
+                        {
+                            paramList.Add(0.5);
+                        }
+                    }
 
-                    // Ensure at least 1 midpoint if no points were added
                     if (paramList.Count == 0)
                     {
-                        paramList.Add(0.5);
+                        continue; // No hangers needed on short segments
                     }
 
                     Level level = doc.GetElement(elem.LevelId) as Level;
