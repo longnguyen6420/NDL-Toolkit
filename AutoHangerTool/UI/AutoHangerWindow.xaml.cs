@@ -108,7 +108,17 @@ namespace NDL.AutoHangerTool.UI
             double slabHeightInches = 144;
             double.TryParse(txtSlabHeight.Text, out slabHeightInches);
 
+            double thresholdSize = 6;
+            double.TryParse(txtThresholdSize.Text, out thresholdSize);
+
+            double sideClearance = 2.5;
+            double.TryParse(txtSideClearance.Text, out sideClearance);
+
             string rodSize = (cboRodSize.SelectedItem as ComboBoxItem)?.Content?.ToString() ?? "1/2\"";
+
+            HangerMode mode = HangerMode.AutoBySize;
+            if (cboHangerMode.SelectedIndex == 1) mode = HangerMode.SingleRodAlways;
+            else if (cboHangerMode.SelectedIndex == 2) mode = HangerMode.DualRodAlways;
 
             var settings = new HangerSettings
             {
@@ -116,7 +126,10 @@ namespace NDL.AutoHangerTool.UI
                 FittingOffsetInches = offsetInches,
                 PlaceNearFittings = chkNearFittings.IsChecked == true,
                 RodSize = rodSize,
-                DefaultSlabHeightInches = slabHeightInches
+                DefaultSlabHeightInches = slabHeightInches,
+                Mode = mode,
+                DualRodThresholdInches = thresholdSize,
+                RodSideClearanceInches = sideClearance
             };
 
             FamilySymbol selectedSymbol = (cboHangerFamily.SelectedItem as HangerFamilyItem)?.Symbol;

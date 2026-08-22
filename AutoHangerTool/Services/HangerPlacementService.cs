@@ -8,6 +8,13 @@ using Autodesk.Revit.DB.Structure;
 
 namespace NDL.AutoHangerTool.Services
 {
+    public enum HangerMode
+    {
+        AutoBySize,
+        SingleRodAlways,
+        DualRodAlways
+    }
+
     public class HangerSettings
     {
         public double SpacingInches { get; set; } = 96.0; // 8 ft default spacing
@@ -15,10 +22,32 @@ namespace NDL.AutoHangerTool.Services
         public bool PlaceNearFittings { get; set; } = true;
         public string RodSize { get; set; } = "1/2\"";
         public double DefaultSlabHeightInches { get; set; } = 144.0; // 12 ft
+
+        // Dual Rod Settings for Large Pipes
+        public HangerMode Mode { get; set; } = HangerMode.AutoBySize;
+        public double DualRodThresholdInches { get; set; } = 6.0; // Pipes >= 6" use 2 rods
+        public double RodSideClearanceInches { get; set; } = 2.5; // Distance from pipe outer edge to rod
     }
 
     public static class HangerPlacementService
     {
+        public static double GetElementOuterDiameterInches(Element elem)
+        {
+            if (elem == null) return 4.0;
+
+            Parameter pDiam = elem.get_Parameter(BuiltInParameter.RBS_PIPE_OUTER_DIAMETER) ??
+                             elem.get_Parameter(BuiltInParameter.RBS_CURVE_DIAMETER_PARAM) ??
+                             elem.get_Parameter(BuiltInParameter.RBS_PIPE_DIAMETER_PARAM) ??
+                             elem.get_Parameter(BuiltInParameter.RBS_CURVE_WIDTH_PARAM);
+
+            if (pDiam != null && pDiam.HasValue)
+            {
+                return pDiam.AsDouble() * 12.0; // Convert feet to inches
+            }
+
+            return 4.0; // default 4 inches
+        }
+
         public static int PlaceHangersOnPipes(Document doc, List<Element> pipes, HangerSettings settings, FamilySymbol hangerSymbol)
         {
             if (doc == null || pipes == null || pipes.Count == 0 || hangerSymbol == null)
@@ -63,6 +92,34 @@ namespace NDL.AutoHangerTool.Services
                     double length = curve.Length;
                     if (length < 1.0) continue; // Skip very short segments (< 1 foot)
 
+                    double pipeDiamInches = GetElementOuterDiameterInches(elem);
+                    double pipeDiamFt = pipeDiamInches / 12.0;
+
+                    // Determine if this pipe uses 2 rods (Dual Inserts) or 1 rod (Single Insert)
+                    bool useDualRods = false;
+                    if (settings.Mode == HangerMode.DualRodAlways)
+                    {
+                        useDualRods = true;
+                    }
+                    else if (settings.Mode == HangerMode.AutoBySize)
+                    {
+                        useDualRods = pipeDiamInches >= settings.DualRodThresholdInches;
+                    }
+
+                    // Calculate direction and horizontal perpendicular vector
+                    XYZ p0 = curve.GetEndPoint(0);
+                    XYZ p1 = curve.GetEndPoint(1);
+                    XYZ dir = (p1 - p0).Normalize();
+                    XYZ perp = new XYZ(-dir.Y, dir.X, 0);
+                    if (perp.GetLength() < 0.001)
+                    {
+                        perp = XYZ.BasisX;
+                    }
+                    else
+                    {
+                        perp = perp.Normalize();
+                    }
+
                     List<double> paramList = new List<double>();
 
                     // 1. Add points near fittings if enabled
@@ -95,56 +152,74 @@ namespace NDL.AutoHangerTool.Services
 
                     Level level = doc.GetElement(elem.LevelId) as Level;
                     double levelElev = level != null ? level.Elevation : 0.0;
+                    double defaultTopZ = levelElev + (settings.DefaultSlabHeightInches / 12.0);
 
                     foreach (double param in paramList.OrderBy(p => p))
                     {
-                        XYZ pt = curve.Evaluate(param, true);
+                        XYZ centerPt = curve.Evaluate(param, true);
 
-                        // Find slab/beam elevation above pipe
-                        double topZ = levelElev + (settings.DefaultSlabHeightInches / 12.0);
-                        if (intersector != null)
+                        List<XYZ> rodPoints = new List<XYZ>();
+                        if (useDualRods)
                         {
-                            try
-                            {
-                                var rayResult = intersector.FindNearest(pt, XYZ.BasisZ);
-                                if (rayResult != null)
-                                {
-                                    XYZ hitPt = rayResult.GetReference().GlobalPoint;
-                                    if (hitPt != null && hitPt.Z > pt.Z)
-                                    {
-                                        topZ = hitPt.Z;
-                                    }
-                                }
-                            }
-                            catch { }
+                            // 2 Rods: Left and Right of Pipe
+                            double halfSpanFt = (pipeDiamFt / 2.0) + (settings.RodSideClearanceInches / 12.0);
+                            rodPoints.Add(centerPt + perp * halfSpanFt);
+                            rodPoints.Add(centerPt - perp * halfSpanFt);
+                        }
+                        else
+                        {
+                            // 1 Rod: Center of Pipe
+                            rodPoints.Add(centerPt);
                         }
 
-                        double rodLengthFt = Math.Max(0.5, topZ - pt.Z);
-
-                        // Place Hanger Instance
-                        FamilyInstance fi = doc.Create.NewFamilyInstance(pt, hangerSymbol, level, StructuralType.NonStructural);
-                        if (fi != null)
+                        foreach (XYZ pt in rodPoints)
                         {
-                            // Set Rod Length parameter
-                            Parameter pLen = fi.LookupParameter("Rod_Length") ??
-                                             fi.LookupParameter("Rod Length") ??
-                                             fi.LookupParameter("Length") ??
-                                             fi.LookupParameter("Height");
-                            if (pLen != null && !pLen.IsReadOnly)
+                            // Detect slab / beam elevation above rod point
+                            double topZ = defaultTopZ;
+                            if (intersector != null)
                             {
-                                pLen.Set(rodLengthFt);
+                                try
+                                {
+                                    var rayResult = intersector.FindNearest(pt, XYZ.BasisZ);
+                                    if (rayResult != null)
+                                    {
+                                        XYZ hitPt = rayResult.GetReference().GlobalPoint;
+                                        if (hitPt != null && hitPt.Z > pt.Z)
+                                        {
+                                            topZ = hitPt.Z;
+                                        }
+                                    }
+                                }
+                                catch { }
                             }
 
-                            // Set Rod Size text parameter
-                            Parameter pSize = fi.LookupParameter("Rod_Size") ??
-                                              fi.LookupParameter("Rod Size") ??
-                                              fi.LookupParameter("Comments");
-                            if (pSize != null && !pSize.IsReadOnly)
-                            {
-                                pSize.Set(settings.RodSize);
-                            }
+                            double rodLengthFt = Math.Max(0.5, topZ - pt.Z);
 
-                            count++;
+                            // Place Hanger Instance
+                            FamilyInstance fi = doc.Create.NewFamilyInstance(pt, hangerSymbol, level, StructuralType.NonStructural);
+                            if (fi != null)
+                            {
+                                // Set Rod Length parameter
+                                Parameter pLen = fi.LookupParameter("Rod_Length") ??
+                                                 fi.LookupParameter("Rod Length") ??
+                                                 fi.LookupParameter("Length") ??
+                                                 fi.LookupParameter("Height");
+                                if (pLen != null && !pLen.IsReadOnly)
+                                {
+                                    pLen.Set(rodLengthFt);
+                                }
+
+                                // Set Rod Size text parameter
+                                Parameter pSize = fi.LookupParameter("Rod_Size") ??
+                                                  fi.LookupParameter("Rod Size") ??
+                                                  fi.LookupParameter("Comments");
+                                if (pSize != null && !pSize.IsReadOnly)
+                                {
+                                    pSize.Set(settings.RodSize);
+                                }
+
+                                count++;
+                            }
                         }
                     }
                 }
